@@ -21,7 +21,7 @@ enable_testing()
 file(GLOB_RECURSE RNAUDIOAPI_SRC
   CONFIGURE_DEPENDS
   "${ROOT}/node_modules/react-native-audio-api/common/cpp/audioapi/*.cpp"
-  "${ROOT}/node_modules/react-native-audio-api/android/src/main/cpp/audioapi/android/core/AudioDecoder.cpp"
+  "${ROOT}/node_modules/react-native-audio-api/android/src/main/cpp/audioapi/android/core/utils/AudioDecoder.cpp"
 )
 
 # exclude HostObjects from tests
