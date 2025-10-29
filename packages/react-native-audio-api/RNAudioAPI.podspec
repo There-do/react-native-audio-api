@@ -32,6 +32,13 @@ Pod::Spec.new do |s|
       sss.header_dir = "audioapi"
       sss.header_mappings_dir = "ios/audioapi"
     end
+
+    ss.subspec "audioapi_dsp" do |sss|
+      sss.source_files = "common/cpp/audioapi/dsp/**/*.{cpp}"
+      sss.header_dir = "audioapi/dsp"
+      sss.header_mappings_dir = "common/cpp/audioapi/dsp"
+      sss.compiler_flags = "-O3"
+    end
   end
 
   s.ios.frameworks = 'CoreFoundation', 'CoreAudio', 'AudioToolbox', 'Accelerate', 'MediaPlayer', 'AVFoundation'
