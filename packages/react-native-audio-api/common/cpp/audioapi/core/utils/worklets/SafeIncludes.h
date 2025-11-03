@@ -68,4 +68,14 @@ class SerializableWorklet {
 struct RuntimeRegistry {
   std::weak_ptr<worklets::WorkletRuntime> uiRuntime;
   std::shared_ptr<worklets::WorkletRuntime> audioRuntime;
+
+#if ANDROID
+    ~RuntimeRegistry() {
+        jni::ThreadScope::WithClassLoader(
+            [this]() {
+                uiRuntime.reset();
+                audioRuntime.reset();
+            });
+    }
+#endif
 };
