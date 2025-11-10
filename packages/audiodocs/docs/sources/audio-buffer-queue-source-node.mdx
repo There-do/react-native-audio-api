@@ -22,6 +22,12 @@ interface AudioBufferBaseSourceNodeOptions {
 }
 ```
 
+:::caution
+The pitch correction algorithm introduces processing latency.
+As a result, when scheduling precise playback times, you should start input samples slightly ahead of the intended playback time.
+For more details, see [getLatency()](/docs/sources/audio-buffer-base-source-node#getlatency).
+:::
+
 ## Example
 
 ```tsx
@@ -39,8 +45,8 @@ function App() {
     const audioBufferQueue = audioContextRef.current.createBufferQueueSource();
     const buffer1 = ...; // Load your audio buffer here
     const buffer2 = ...; // Load another audio buffer if needed
-    audioBufferQueue.enqueueBuffer(buffer1, false);
-    audioBufferQueue.enqueueBuffer(buffer2, true); // Last buffer should be marked as is
+    audioBufferQueue.enqueueBuffer(buffer1);
+    audioBufferQueue.enqueueBuffer(buffer2);
     audioBufferQueue.connect(audioContextRef.current.destination);
     audioBufferQueue.start(audioContextRef.current.currentTime);
 }

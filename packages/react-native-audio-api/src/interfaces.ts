@@ -144,6 +144,9 @@ export interface IAudioBufferBaseSourceNode extends IAudioScheduledSourceNode {
   detune: IAudioParam;
   playbackRate: IAudioParam;
 
+  getInputLatency: () => number;
+  getOutputLatency: () => number;
+
   // passing subscriptionId(uint_64 in cpp, string in js) to the cpp
   onPositionChanged: string;
   // set how often the onPositionChanged event is called

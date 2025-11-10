@@ -41,6 +41,8 @@ class AudioBufferQueueSourceNode : public AudioBufferBaseSourceNode {
     size_t bufferId_ = 0;
 
     bool isPaused_ = false;
+    bool addExtraTailFrames_ = false;
+    std::shared_ptr<AudioBuffer> tailBuffer_;
 
     double playedBuffersDuration_ = 0;
 

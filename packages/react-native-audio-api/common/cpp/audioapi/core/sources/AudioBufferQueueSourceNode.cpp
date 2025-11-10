@@ -17,6 +17,19 @@ AudioBufferQueueSourceNode::AudioBufferQueueSourceNode(
   buffers_ = {};
   stretch_->presetDefault(channelCount_, context_->getSampleRate());
 
+  if (pitchCorrection) {
+    // If pitch correction is enabled, add extra frames at the end
+    // to compensate for processing latency.
+    addExtraTailFrames_ = true;
+
+    int extraTailFrames =
+        static_cast<int>(stretch_->inputLatency() + stretch_->outputLatency());
+    tailBuffer_ = std::make_shared<AudioBuffer>(
+        channelCount_, extraTailFrames, context_->getSampleRate());
+
+    tailBuffer_->bus_->zero();
+  }
+
   isInitialized_ = true;
 }
 
@@ -177,10 +190,17 @@ void AudioBufferQueueSourceNode::processWithoutInterpolation(
           "ended", onEndedCallbackId_, body);
 
       if (buffers_.empty()) {
-        processingBus->zero(writeIndex, framesLeft);
-        readIndex = 0;
+        if (addExtraTailFrames_) {
+          buffers_.emplace(bufferId_, tailBuffer_);
+          bufferId_++;
 
-        break;
+          addExtraTailFrames_ = false;
+        } else if (buffers_.empty()) {
+          processingBus->zero(writeIndex, framesLeft);
+          readIndex = 0;
+
+          break;
+        }
       }
 
       data = buffers_.front();
