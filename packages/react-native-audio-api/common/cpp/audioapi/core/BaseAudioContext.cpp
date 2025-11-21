@@ -4,6 +4,7 @@
 #include <audioapi/core/effects/BiquadFilterNode.h>
 #include <audioapi/core/effects/ConvolverNode.h>
 #include <audioapi/core/effects/GainNode.h>
+#include <audioapi/core/effects/IIRFilterNode.h>
 #include <audioapi/core/effects/StereoPannerNode.h>
 #include <audioapi/core/effects/WorkletNode.h>
 #include <audioapi/core/effects/WorkletProcessingNode.h>
@@ -149,6 +150,14 @@ std::shared_ptr<BiquadFilterNode> BaseAudioContext::createBiquadFilter() {
   auto biquadFilter = std::make_shared<BiquadFilterNode>(this);
   nodeManager_->addProcessingNode(biquadFilter);
   return biquadFilter;
+}
+
+std::shared_ptr<IIRFilterNode> BaseAudioContext::createIIRFilter(
+    const std::vector<float> &feedforward,
+    const std::vector<float> &feedback) {
+  auto iirFilter = std::make_shared<IIRFilterNode>(this, feedforward, feedback);
+  nodeManager_->addProcessingNode(iirFilter);
+  return iirFilter;
 }
 
 std::shared_ptr<AudioBufferSourceNode> BaseAudioContext::createBufferSource(bool pitchCorrection) {

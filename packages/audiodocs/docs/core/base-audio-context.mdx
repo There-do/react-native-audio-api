@@ -126,6 +126,23 @@ Creates [`GainNode`](/docs/effects/gain-node).
 
 #### Returns `GainNode`.
 
+### `createIIRFilter`
+
+Creates [`IIRFilterNode`](/docs/effects/iir-filter-node).
+
+| Parameter | Type | Description |
+| :---: | :---: | :---- |
+| `options` | [`IIRFilterNodeOptions`](/docs/effects/iir-filter-node#constructor) | Dictionary object that specifies the feedforward (numerator) and feedback (denominator) coefficients for the transfer function of the IIR filter. |
+
+#### Errors
+
+| Error type | Description |
+| :---: | :---- |
+| `NotSupportedError` | One or both of the input arrays exceeds 20 members. |
+| `InvalidStateError` | All of the feedforward coefficients are 0, or the first feedback coefficient is 0. |
+
+#### Returns `IIRFilterNode`.
+
 ### `createOscillator`
 
 Creates [`OscillatorNode`](/docs/sources/oscillator-node).
