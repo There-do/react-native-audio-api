@@ -60,6 +60,7 @@ export interface IBaseAudioContext {
   createOscillator(): IOscillatorNode;
   createConstantSource(): IConstantSourceNode;
   createGain(): IGainNode;
+  createDelay(maxDelayTime: number): IDelayNode;
   createStereoPanner(): IStereoPannerNode;
   createBiquadFilter: () => IBiquadFilterNode;
   createIIRFilter: (
@@ -110,6 +111,11 @@ export interface IAudioNode {
 
   connect: (destination: IAudioNode | IAudioParam) => void;
   disconnect: (destination?: IAudioNode | IAudioParam) => void;
+}
+
+export interface IDelayNode extends IAudioNode {
+  readonly delayTime: IAudioParam;
+  maxDelayTime: number;
 }
 
 export interface IGainNode extends IAudioNode {
