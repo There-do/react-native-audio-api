@@ -23,6 +23,7 @@ export { default as OscillatorNode } from './core/OscillatorNode';
 export { default as RecorderAdapterNode } from './core/RecorderAdapterNode';
 export { default as StereoPannerNode } from './core/StereoPannerNode';
 export { default as StreamerNode } from './core/StreamerNode';
+export { default as WaveShaperNode } from './core/WaveShaperNode';
 export { default as WorkletNode } from './core/WorkletNode';
 export { default as WorkletProcessingNode } from './core/WorkletProcessingNode';
 export { default as WorkletSourceNode } from './core/WorkletSourceNode';
