@@ -22,6 +22,7 @@ import com.facebook.react.modules.core.PermissionListener
 import com.swmansion.audioapi.AudioAPIModule
 import com.swmansion.audioapi.system.PermissionRequestListener.Companion.RECORDING_REQUEST_CODE
 import com.swmansion.audioapi.system.notification.NotificationRegistry
+import com.swmansion.audioapi.system.notification.PlaybackNotification
 import com.swmansion.audioapi.system.notification.PlaybackNotificationReceiver
 import java.lang.ref.WeakReference
 
@@ -59,6 +60,10 @@ object MediaSessionManager {
 
     // Register PlaybackNotificationReceiver
     val playbackFilter = IntentFilter(PlaybackNotificationReceiver.ACTION_NOTIFICATION_DISMISSED)
+    playbackFilter.addAction(PlaybackNotification.MEDIA_BUTTON)
+    playbackFilter.addAction(PlaybackNotificationReceiver.ACTION_SKIP_FORWARD)
+    playbackFilter.addAction(PlaybackNotificationReceiver.ACTION_SKIP_BACKWARD)
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
       this.reactContext.get()!!.registerReceiver(playbackNotificationReceiver, playbackFilter, Context.RECEIVER_NOT_EXPORTED)
     } else {
