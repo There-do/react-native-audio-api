@@ -23,9 +23,6 @@ import com.swmansion.audioapi.system.PermissionRequestListener.Companion.RECORDI
 import com.swmansion.audioapi.system.notification.NotificationRegistry
 import com.swmansion.audioapi.system.notification.PlaybackNotification
 import com.swmansion.audioapi.system.notification.PlaybackNotificationReceiver
-import com.swmansion.audioapi.system.notification.RecordingNotification
-import com.swmansion.audioapi.system.notification.RecordingNotificationReceiver
-import com.swmansion.audioapi.system.notification.SimpleNotification
 import java.lang.ref.WeakReference
 
 object MediaSessionManager {
@@ -38,7 +35,6 @@ object MediaSessionManager {
   private lateinit var audioFocusListener: AudioFocusListener
   private lateinit var volumeChangeListener: VolumeChangeListener
   private lateinit var playbackNotificationReceiver: PlaybackNotificationReceiver
-  private lateinit var recordingNotificationReceiver: RecordingNotificationReceiver
 
   // New notification system
   private lateinit var notificationRegistry: NotificationRegistry
@@ -75,29 +71,12 @@ object MediaSessionManager {
       )
     }
 
-    // Set up RecordingNotificationReceiver
-    RecordingNotificationReceiver.setAudioAPIModule(audioAPIModule.get())
-    this.recordingNotificationReceiver = RecordingNotificationReceiver()
-
-    // Register RecordingNotificationReceiver
-    val recordingFilter = IntentFilter(RecordingNotificationReceiver.ACTION_NOTIFICATION_DISMISSED)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      this.reactContext.get()!!.registerReceiver(recordingNotificationReceiver, recordingFilter, Context.RECEIVER_NOT_EXPORTED)
-    } else {
-      ContextCompat.registerReceiver(
-        this.reactContext.get()!!,
-        recordingNotificationReceiver,
-        recordingFilter,
-        ContextCompat.RECEIVER_NOT_EXPORTED,
-      )
-    }
-
     this.audioFocusListener =
       AudioFocusListener(WeakReference(this.audioManager), this.audioAPIModule)
     this.volumeChangeListener = VolumeChangeListener(WeakReference(this.audioManager), this.audioAPIModule)
 
     // Initialize new notification system
-    this.notificationRegistry = NotificationRegistry(this.reactContext)
+    this.notificationRegistry = NotificationRegistry(this.reactContext, this.audioAPIModule)
   }
 
   fun getDevicePreferredSampleRate(): Double {
@@ -263,42 +242,17 @@ object MediaSessionManager {
       else -> "Other (${device.type})"
     }
 
-  // New notification system methods
-  fun registerNotification(
+  // Notification system methods
+  fun showNotification(
     type: String,
     key: String,
-  ) {
-    val notification =
-      when (type) {
-        "simple" -> SimpleNotification(reactContext)
-        "playback" -> PlaybackNotification(reactContext, audioAPIModule, 100, "audio_playback")
-        "recording" -> RecordingNotification(reactContext, audioAPIModule, 101, "audio_recording23")
-        else -> throw IllegalArgumentException("Unknown notification type: $type")
-      }
-
-    notificationRegistry.registerNotification(key, notification)
-  }
-
-  fun showNotification(
-    key: String,
     options: ReadableMap?,
   ) {
-    notificationRegistry.showNotification(key, options)
-  }
-
-  fun updateNotification(
-    key: String,
-    options: ReadableMap?,
-  ) {
-    notificationRegistry.updateNotification(key, options)
+    notificationRegistry.showNotification(key, type, options)
   }
 
   fun hideNotification(key: String) {
     notificationRegistry.hideNotification(key)
-  }
-
-  fun unregisterNotification(key: String) {
-    notificationRegistry.unregisterNotification(key)
   }
 
   fun isNotificationActive(key: String): Boolean = notificationRegistry.isNotificationActive(key)

@@ -65,7 +65,6 @@ const AudioFile: FC = () => {
 
   const setupNotification = async () => {
     try {
-      await PlaybackNotificationManager.register();
       const duration = AudioPlayer.getDuration();
       await PlaybackNotificationManager.show({
         title: 'Audio file',
@@ -89,7 +88,7 @@ const AudioFile: FC = () => {
     setup();
     return () => {
       AudioPlayer.reset();
-      PlaybackNotificationManager.unregister();
+      PlaybackNotificationManager.hide();
     };
   }, [fetchAudioBuffer]);
 

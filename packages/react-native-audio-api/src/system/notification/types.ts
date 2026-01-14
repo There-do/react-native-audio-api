@@ -8,20 +8,15 @@ export interface NotificationManager<
   TUpdateOptions,
   TEventName extends NotificationEventName,
 > {
-  /// Register the notification (must be called before showing).
-  register(): Promise<void>;
-
-  /// Show the notification with initial options.
+  /// Show the notification with options or update if already visible.
+  /// Automatically creates the notification instance on first call.
   show(options: TShowOptions): Promise<void>;
 
-  /// Update the notification with new options.
+  /// Update the notification with new options (alias for show).
   update(options: TUpdateOptions): Promise<void>;
 
-  /// Hide the notification (can be shown again later).
+  /// Hide the notification.
   hide(): Promise<void>;
-
-  /// Unregister the notification (must register again to use).
-  unregister(): Promise<void>;
 
   /// Check if the notification is currently active.
   isActive(): Promise<boolean>;
@@ -73,39 +68,10 @@ interface PlaybackNotificationEvent {
 
 export type PlaybackNotificationEventName = keyof PlaybackNotificationEvent;
 
-/// Metadata and state information for recording notifications.
-export interface RecordingNotificationInfo {
-  title?: string;
-  description?: string;
-  artwork?: string | { uri: string };
-  state?: 'recording' | 'stopped';
-  control?: RecordingControlName;
-  enabled?: boolean;
-}
-
-/// Available recording control actions.
-export type RecordingControlName = 'start' | 'stop';
-
-/// Event names for recording notification actions.
-interface RecordingNotificationEvent {
-  recordingNotificationStart: EventEmptyType;
-  recordingNotificationStop: EventEmptyType;
-  recordingNotificationDismissed: EventEmptyType;
-}
-
-export type RecordingNotificationEventName = keyof RecordingNotificationEvent;
-
-export type NotificationEvents = PlaybackNotificationEvent &
-  RecordingNotificationEvent;
+export type NotificationEvents = PlaybackNotificationEvent;
 
 export type NotificationEventName = keyof NotificationEvents;
 
 export type NotificationCallback<Name extends NotificationEventName> = (
   event: NotificationEvents[Name]
 ) => void;
-
-/// Options for a simple notification with title and text.
-export interface SimpleNotificationOptions {
-  title?: string;
-  text?: string;
-}
