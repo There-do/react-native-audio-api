@@ -1,4 +1,4 @@
-#include <audioapi/HostObjects/utils/NodeOptions.h>
+#include <audioapi/types/NodeOptions.h>
 #include <audioapi/core/BaseAudioContext.h>
 #include <audioapi/core/effects/ConvolverNode.h>
 #include <audioapi/core/sources/AudioBuffer.h>
@@ -24,9 +24,6 @@ ConvolverNode::ConvolverNode(const std::shared_ptr<BaseAudioContext>& context, c
       buffer_(nullptr),
       internalBuffer_(nullptr) {
   setBuffer(options.bus);
-  audioBus_ =
-      std::make_shared<AudioBus>(RENDER_QUANTUM_SIZE, channelCount_, context->getSampleRate());
-  requiresTailProcessing_ = true;
   isInitialized_ = true;
 }
 

@@ -3,6 +3,7 @@
 #include <audioapi/core/types/ChannelCountMode.h>
 #include <audioapi/core/types/ChannelInterpretation.h>
 #include <audioapi/core/utils/Constants.h>
+#include <audioapi/types/NodeOptions.h>
 
 #include <cassert>
 #include <cstddef>
@@ -16,14 +17,12 @@ namespace audioapi {
 class AudioBus;
 class BaseAudioContext;
 class AudioParam;
-struct AudioNodeOptions;
 
 class AudioNode : public std::enable_shared_from_this<AudioNode> {
  public:
-  explicit AudioNode(const std::shared_ptr<BaseAudioContext> &context);
   explicit AudioNode(
       const std::shared_ptr<BaseAudioContext> &context,
-      const AudioNodeOptions &options);
+      const AudioNodeOptions &options = AudioNodeOptions());
   virtual ~AudioNode();
 
   int getNumberOfInputs() const;
@@ -55,20 +54,20 @@ class AudioNode : public std::enable_shared_from_this<AudioNode> {
   std::weak_ptr<BaseAudioContext> context_;
   std::shared_ptr<AudioBus> audioBus_;
 
-  int numberOfInputs_ = 1;
-  int numberOfOutputs_ = 1;
-  int channelCount_ = 2;
-  ChannelCountMode channelCountMode_ = ChannelCountMode::MAX;
-  ChannelInterpretation channelInterpretation_ = ChannelInterpretation::SPEAKERS;
-
   std::unordered_set<AudioNode *> inputNodes_ = {};
   std::unordered_set<std::shared_ptr<AudioNode>> outputNodes_ = {};
   std::unordered_set<std::shared_ptr<AudioParam>> outputParams_ = {};
 
+  const int numberOfInputs_;
+  const int numberOfOutputs_;
+  int channelCount_;
+  const bool requiresTailProcessing_;
+  const ChannelCountMode channelCountMode_;
+  const ChannelInterpretation channelInterpretation_;
+
   int numberOfEnabledInputNodes_ = 0;
   bool isInitialized_ = false;
   bool isEnabled_ = true;
-  bool requiresTailProcessing_ = false;
 
   std::size_t lastRenderedFrame_{SIZE_MAX};
 

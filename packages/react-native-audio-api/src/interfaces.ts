@@ -11,7 +11,6 @@ import type {
   OverSampleType,
   Result,
   TAnalyserOptions,
-  TAudioBufferOptions,
   TAudioBufferSourceOptions,
   TBaseAudioBufferSourceOptions,
   TBiquadFilterOptions,
@@ -95,14 +94,13 @@ export interface IBaseAudioContext {
   createBufferQueueSource: (
     audioBufferQueueSourceOptions: TBaseAudioBufferSourceOptions
   ) => IAudioBufferQueueSourceNode;
-  createBuffer: (audioBufferOptions: TAudioBufferOptions) => IAudioBuffer;
   createPeriodicWave: (
     real: Float32Array,
     imag: Float32Array,
     disableNormalization: boolean
   ) => IPeriodicWave;
   createAnalyser: (analyserOptions: TAnalyserOptions) => IAnalyserNode;
-  createConvolver: (convolverOptions: TConvolverOptions) => IConvolverNode;
+  createConvolver: (convolverOptions?: TConvolverOptions) => IConvolverNode;
   createStreamer: (streamerOptions?: TStreamerOptions) => IStreamerNode | null; // null when FFmpeg is not enabled
   createWaveShaper: (waveShaperOptions?: TWaveShaperOptions) => IWaveShaperNode;
 }
