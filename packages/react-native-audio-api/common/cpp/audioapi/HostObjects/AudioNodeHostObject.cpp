@@ -36,7 +36,7 @@ JSI_PROPERTY_GETTER_IMPL(AudioNodeHostObject, numberOfOutputs) {
 }
 
 JSI_PROPERTY_GETTER_IMPL(AudioNodeHostObject, channelCount) {
-  return {node_->getChannelCount()};
+  return {static_cast<int>(node_->getChannelCount())};
 }
 
 JSI_PROPERTY_GETTER_IMPL(AudioNodeHostObject, channelCountMode) {

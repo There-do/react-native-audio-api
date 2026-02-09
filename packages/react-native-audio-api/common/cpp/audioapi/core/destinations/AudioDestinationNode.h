@@ -11,7 +11,7 @@
 
 namespace audioapi {
 
-class AudioBus;
+class AudioBuffer;
 class BaseAudioContext;
 
 class AudioDestinationNode : public AudioNode {
@@ -21,13 +21,15 @@ class AudioDestinationNode : public AudioNode {
   std::size_t getCurrentSampleFrame() const;
   double getCurrentTime() const;
 
-  void renderAudio(const std::shared_ptr<AudioBus> &audioData, int numFrames);
+  void renderAudio(const std::shared_ptr<AudioBuffer> &audioData, int numFrames);
 
  protected:
   // DestinationNode is triggered by AudioContext using renderAudio
   // processNode function is not necessary and is never called.
-  std::shared_ptr<AudioBus> processNode(const std::shared_ptr<AudioBus> &processingBus, int) final {
-    return processingBus;
+  std::shared_ptr<AudioBuffer> processNode(
+      const std::shared_ptr<AudioBuffer> &processingBuffer,
+      int) final {
+    return processingBuffer;
   };
 
  private:

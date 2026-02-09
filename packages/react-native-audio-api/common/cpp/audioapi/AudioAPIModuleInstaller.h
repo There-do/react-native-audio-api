@@ -9,8 +9,8 @@
 #include <audioapi/core/AudioContext.h>
 #include <audioapi/core/OfflineAudioContext.h>
 #include <audioapi/core/inputs/AudioRecorder.h>
-#include <audioapi/core/sources/AudioBuffer.h>
 #include <audioapi/jsi/JsiPromise.h>
+#include <audioapi/utils/AudioBuffer.h>
 
 #include <audioapi/HostObjects/events/AudioEventHandlerRegistryHostObject.h>
 #include <audioapi/events/AudioEventHandlerRegistry.h>
@@ -197,7 +197,7 @@ class AudioAPIModuleInstaller {
           auto length = static_cast<size_t>(args[1].getNumber());
           auto sampleRate = static_cast<float>(args[2].getNumber());
 
-          auto audioBuffer = std::make_shared<AudioBuffer>(numberOfChannels, length, sampleRate);
+          auto audioBuffer = std::make_shared<AudioBuffer>(length, numberOfChannels, sampleRate);
           auto audioBufferHostObject = std::make_shared<AudioBufferHostObject>(audioBuffer);
           return jsi::Object::createFromHostObject(runtime, audioBufferHostObject);
         });

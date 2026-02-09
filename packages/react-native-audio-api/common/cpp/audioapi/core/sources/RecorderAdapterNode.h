@@ -10,7 +10,7 @@
 
 namespace audioapi {
 
-class AudioBus;
+class AudioBuffer;
 
 /// @brief RecorderAdapterNode is an AudioNode which adapts push Recorder into pull graph.
 /// It uses RingBuffer to store audio data and AudioParam to provide audio data in pull mode.
@@ -28,18 +28,18 @@ class RecorderAdapterNode : public AudioNode {
   void init(size_t bufferSize, int channelCount);
   void cleanup();
 
-  int channelCount_;
-  // TODO: CircularOverflowableAudioBus
+  int channelCount_{};
+  // TODO: CircularOverflowableAudioBuffer
   std::vector<std::shared_ptr<CircularOverflowableAudioArray>> buff_;
 
  protected:
-  std::shared_ptr<AudioBus> processNode(
-      const std::shared_ptr<AudioBus> &processingBus,
+  std::shared_ptr<AudioBuffer> processNode(
+      const std::shared_ptr<AudioBuffer> &processingBuffer,
       int framesToProcess) override;
-  std::shared_ptr<AudioBus> adapterOutputBus_;
+  std::shared_ptr<AudioBuffer> adapterOutputBuffer_;
 
  private:
-  /// @brief Read audio frames from the recorder's internal circular buffer into output buss.
+  /// @brief Read audio frames from the recorder's internal circular buffer into output buffers.
   /// @note If `framesToRead` is greater than the number of available frames, it will fill empty space with silence.
   /// @param framesToRead Number of frames to read.
   void readFrames(size_t framesToRead);

@@ -81,7 +81,7 @@ ConvolverOptions parseConvolverOptions(jsi::Runtime &runtime, const jsi::Object 
     auto bufferHostObject = optionsObject.getProperty(runtime, "buffer")
                                 .getObject(runtime)
                                 .asHostObject<AudioBufferHostObject>(runtime);
-    options.bus = bufferHostObject->audioBuffer_;
+    options.buffer = bufferHostObject->audioBuffer_;
   }
   return options;
 }
@@ -338,7 +338,7 @@ WaveShaperOptions parseWaveShaperOptions(jsi::Runtime &runtime, const jsi::Objec
   if (optionsObject.hasProperty(runtime, "buffer")) {
     auto arrayBuffer = optionsObject.getPropertyAsObject(runtime, "buffer").getArrayBuffer(runtime);
 
-    options.curve = std::make_shared<AudioArray>(
+    options.curve = std::make_shared<AudioArrayBuffer>(
         reinterpret_cast<float *>(arrayBuffer.data(runtime)),
         static_cast<size_t>(arrayBuffer.size(runtime) / sizeof(float)));
   }

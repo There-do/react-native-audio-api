@@ -18,7 +18,7 @@ struct CallbackData {
 
 namespace audioapi {
 
-class AudioBus;
+class AudioBuffer;
 class CircularAudioArray;
 class AudioEventHandlerRegistry;
 

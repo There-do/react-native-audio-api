@@ -2,8 +2,8 @@
 #include <audioapi/core/BaseAudioContext.h>
 #include <audioapi/core/destinations/AudioDestinationNode.h>
 #include <audioapi/core/utils/AudioGraphManager.h>
-#include <audioapi/utils/AudioBus.h>
 #include <audioapi/types/NodeOptions.h>
+#include <audioapi/utils/AudioBuffer.h>
 #include <memory>
 
 namespace audioapi {
@@ -26,25 +26,25 @@ double AudioDestinationNode::getCurrentTime() const {
 }
 
 void AudioDestinationNode::renderAudio(
-    const std::shared_ptr<AudioBus> &destinationBus,
+    const std::shared_ptr<AudioBuffer> &destinationBuffer,
     int numFrames) {
-  if (numFrames < 0 || !destinationBus || !isInitialized_) {
+  if (numFrames < 0 || !destinationBuffer || !isInitialized_) {
     return;
   }
 
   if (std::shared_ptr<BaseAudioContext> context = context_.lock()) {
-      context->getGraphManager()->preProcessGraph();
+    context->getGraphManager()->preProcessGraph();
   }
 
-  destinationBus->zero();
+  destinationBuffer->zero();
 
-  auto processedBus = processAudio(destinationBus, numFrames, true);
+  auto processedBuffer = processAudio(destinationBuffer, numFrames, true);
 
-  if (processedBus && processedBus != destinationBus) {
-    destinationBus->copy(processedBus.get());
+  if (processedBuffer && processedBuffer != destinationBuffer) {
+    destinationBuffer->copy(*processedBuffer);
   }
 
-  destinationBus->normalize();
+  destinationBuffer->normalize();
 
   currentSampleFrame_.fetch_add(numFrames, std::memory_order_release);
 }

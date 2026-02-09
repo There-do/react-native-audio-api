@@ -1,16 +1,15 @@
 #pragma once
 
-
-#include <audioapi/libs/miniaudio/miniaudio.h>
 #include <audioapi/core/utils/AudioRecorderCallback.h>
+#include <audioapi/libs/miniaudio/miniaudio.h>
 #include <audioapi/utils/TaskOffloader.hpp>
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace audioapi {
 
-class AudioBus;
+class AudioBuffer;
 class AudioArray;
 class CircularAudioArray;
 class AudioEventHandlerRegistry;
@@ -30,7 +29,8 @@ class AndroidRecorderCallback : public AudioRecorderCallback {
       uint64_t callbackId);
   ~AndroidRecorderCallback() override;
 
-  Result<NoneType, std::string> prepare(float streamSampleRate, int streamChannelCount, size_t maxInputBufferLength);
+  Result<NoneType, std::string>
+  prepare(float streamSampleRate, int streamChannelCount, size_t maxInputBufferLength);
   void cleanup() override;
 
   void receiveAudioData(void *data, int numFrames);
@@ -44,7 +44,7 @@ class AndroidRecorderCallback : public AudioRecorderCallback {
   ma_uint64 processingBufferLength_{0};
   std::unique_ptr<ma_data_converter> converter_{nullptr};
 
-  std::shared_ptr<AudioArray> deinterleavingArray_;
+  std::shared_ptr<AudioBuffer> deinterleavingBuffer_;
 
   void deinterleaveAndPushAudioData(void *data, int numFrames);
 

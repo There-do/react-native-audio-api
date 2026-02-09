@@ -54,7 +54,7 @@ class AudioScheduledSourceNode : public AudioNode {
   std::shared_ptr<IAudioEventHandlerRegistry> audioEventHandlerRegistry_;
 
   void updatePlaybackInfo(
-      const std::shared_ptr<AudioBus> &processingBus,
+      const std::shared_ptr<AudioBuffer> &processingBuffer,
       int framesToProcess,
       size_t &startOffset,
       size_t &nonSilentFramesToProcess,

@@ -7,7 +7,7 @@
 #include <audioapi/events/AudioEventHandlerRegistry.h>
 #include <audioapi/ios/core/utils/IOSRecorderCallback.h>
 #include <audioapi/utils/AudioArray.h>
-#include <audioapi/utils/AudioBus.h>
+#include <audioapi/utils/AudioBuffer.h>
 #include <audioapi/utils/CircularAudioArray.h>
 #include <audioapi/utils/Result.hpp>
 #include <algorithm>
@@ -39,8 +39,8 @@ IOSRecorderCallback::~IOSRecorderCallback()
     converterInputBuffer_ = nil;
     converterOutputBuffer_ = nil;
 
-    for (int i = 0; i < channelCount_; ++i) {
-      circularBus_[i]->zero();
+    for (size_t i = 0; i < channelCount_; ++i) {
+      circularBuffer_[i]->zero();
     }
   }
 }
@@ -105,7 +105,7 @@ Result<NoneType, std::string> IOSRecorderCallback::prepare(
 void IOSRecorderCallback::cleanup()
 {
   @autoreleasepool {
-    if (circularBus_[0]->getNumberOfAvailableFrames() > 0) {
+    if (circularBuffer_[0]->getNumberOfAvailableFrames() > 0) {
       emitAudioData(true);
     }
 
@@ -115,8 +115,8 @@ void IOSRecorderCallback::cleanup()
     converterInputBuffer_ = nil;
     converterOutputBuffer_ = nil;
 
-    for (int i = 0; i < channelCount_; ++i) {
-      circularBus_[i]->zero();
+    for (size_t i = 0; i < channelCount_; ++i) {
+      circularBuffer_[i]->zero();
     }
     offloader_.reset();
   }
@@ -147,12 +147,12 @@ void IOSRecorderCallback::taskOffloaderFunction(CallbackData data)
     if (bufferFormat_.sampleRate == sampleRate_ && bufferFormat_.channelCount == channelCount_ &&
         !bufferFormat_.isInterleaved) {
       // Directly write to circular buffer
-      for (int i = 0; i < channelCount_; ++i) {
-        auto *inputChannel = static_cast<float *>(inputBuffer->mBuffers[i].mData);
-        circularBus_[i]->push_back(inputChannel, numFrames);
+      for (size_t i = 0; i < channelCount_; ++i) {
+        auto *data = static_cast<float *>(inputBuffer->mBuffers[i].mData);
+        circularBuffer_[i]->push_back(data, numFrames);
       }
 
-      if (circularBus_[0]->getNumberOfAvailableFrames() >= bufferLength_) {
+      if (circularBuffer_[0]->getNumberOfAvailableFrames() >= bufferLength_) {
         emitAudioData();
       }
       return;
@@ -193,13 +193,12 @@ void IOSRecorderCallback::taskOffloaderFunction(CallbackData data)
       return;
     }
 
-    for (int i = 0; i < channelCount_; ++i) {
-      auto *inputChannel =
-          static_cast<float *>(converterOutputBuffer_.audioBufferList->mBuffers[i].mData);
-      circularBus_[i]->push_back(inputChannel, outputFrameCount);
+    for (size_t i = 0; i < channelCount_; ++i) {
+      auto *data = static_cast<float *>(converterOutputBuffer_.audioBufferList->mBuffers[i].mData);
+      circularBuffer_[i]->push_back(data, outputFrameCount);
     }
 
-    if (circularBus_[0]->getNumberOfAvailableFrames() >= bufferLength_) {
+    if (circularBuffer_[0]->getNumberOfAvailableFrames() >= bufferLength_) {
       emitAudioData();
     }
   }
