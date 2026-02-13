@@ -65,10 +65,12 @@ export interface RecordingNotificationInfo {
   title?: string;
   contentText?: string;
   paused?: boolean;
+  channelName?: string;
+  channelDescription?: string;
   smallIconResourceName?: string;
   largeIconResourceName?: string;
-  pauseIconResourceName?: string;
-  resumeIconResourceName?: string;
+  pauseText?: string;
+  resumeText?: string;
   color?: number;
 }
 

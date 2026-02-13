@@ -79,12 +79,12 @@ class RecordingNotification(
   }
 
   override fun show(options: ReadableMap?): Notification {
-    initializeNotification()
-    val context = reactContext.get() ?: throw IllegalStateException("React context is null")
     if (options != state.cachedRNOptions) {
       state.cachedRNOptions = options
       parseMapFromRN(options)
     }
+    initializeNotification()
+    val context = reactContext.get() ?: throw IllegalStateException("React context is null")
     val builder = getBuilder()
 
     if (state.smallIconResourceName != null) {
@@ -104,19 +104,13 @@ class RecordingNotification(
       builder.setColor(state.backgroundColor!!)
     }
 
-    val collapsedView = RemoteViews(context.packageName, R.layout.notification_collapsed)
-    val expandedView = RemoteViews(context.packageName, R.layout.notification_expanded)
-
-    val (pauseResumePendingIntent, iconId) = setupPauseResumeIntent(context)
-
-    setupRemoteView(listOf(collapsedView, expandedView), pauseResumePendingIntent, iconId)
+    val (pauseResumePendingIntent, iconId, actionText) = setupPauseResumeIntent(context)
 
     builder
-      .setStyle(NotificationCompat.DecoratedCustomViewStyle())
-      .setCustomContentView(collapsedView)
-      .setCustomBigContentView(expandedView)
       .setContentTitle(state.title)
       .setContentText(state.contentText)
+      .setSilent(true)
+      .addAction(iconId, actionText, pauseResumePendingIntent)
 
     if (state.backgroundColor != null) {
       builder.setColor(state.backgroundColor!!)
@@ -125,7 +119,7 @@ class RecordingNotification(
     return builder.build()
   }
 
-  private fun setupPauseResumeIntent(context: Context): Pair<PendingIntent, Int> {
+  private fun setupPauseResumeIntent(context: Context): Triple<PendingIntent, Int, String> {
     val pauseResumeIntent =
       if (state.paused) {
         state.resumeIntent
@@ -141,41 +135,9 @@ class RecordingNotification(
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
       )
 
-    val pauseId =
-      if (state.pauseIconResourceName != null) {
-        context.resources.getIdentifier(state.pauseIconResourceName, "drawable", context.packageName)
-      } else {
-        android.R.drawable.ic_media_pause
-      }
-    val resumeId =
-      if (state.resumeIconResourceName != null) {
-        context.resources.getIdentifier(state.resumeIconResourceName, "drawable", context.packageName)
-      } else {
-        android.R.drawable.ic_media_play
-      }
-
-    val iconId = if (state.paused) resumeId else pauseId
-    return pauseResumePendingIntent to iconId
-  }
-
-  private fun setupRemoteView(
-    views: List<RemoteViews>,
-    pauseResumePendingIntent: PendingIntent,
-    iconId: Int,
-  ) {
-    val iconColor =
-      if (state.darkTheme) {
-        Color.WHITE // Dark Mode -> White Icon
-      } else {
-        Color.BLACK // Light Mode -> Black Icon
-      }
-    for (view in views) {
-      view.setTextViewText(R.id.notification_title, state.title)
-      view.setTextViewText(R.id.notification_content, state.contentText)
-      view.setImageViewResource(R.id.notification_action_btn, iconId)
-      view.setInt(R.id.notification_action_btn, "setColorFilter", iconColor)
-      view.setOnClickPendingIntent(R.id.notification_action_btn, pauseResumePendingIntent)
-    }
+    val iconId = if (state.paused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause
+    val text = if (state.paused) state.resumeText else state.pauseText
+    return Triple(pauseResumePendingIntent, iconId, text)
   }
 
 // not used currently, left for future reference
@@ -225,10 +187,10 @@ class RecordingNotification(
       val channel =
         NotificationChannel(
           channelId,
-          "Recording Audio",
-          NotificationManager.IMPORTANCE_LOW,
+          state.channelName,
+          NotificationManager.IMPORTANCE_HIGH,
         ).apply {
-          description = "Notifications for ongoing audio recordings"
+          description = state.channelDescription
           lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         }
       val notificationManager =
@@ -246,6 +208,18 @@ class RecordingNotification(
       } else {
         state.contentText ?: "Audio recording is in progress/paused"
       }
+    state.channelName =
+      if (options?.hasKey("channelName") == true) {
+        options.getString("channelName") ?: state.channelName
+      } else {
+        state.channelName
+      }
+    state.channelDescription =
+      if (options?.hasKey("channelDescription") == true) {
+        options.getString("channelDescription") ?: state.channelDescription
+      } else {
+        state.channelDescription
+      }
     state.smallIconResourceName =
       if (options?.hasKey("smallIconResourceName") ==
         true
@@ -262,21 +236,17 @@ class RecordingNotification(
       } else {
         state.largeIconResourceName ?: null
       }
-    state.pauseIconResourceName =
-      if (options?.hasKey("pauseIconResourceName") ==
-        true
-      ) {
-        options.getString("pauseIconResourceName")
+    state.pauseText =
+      if (options?.hasKey("pauseText") == true) {
+        options.getString("pauseText") ?: state.pauseText
       } else {
-        state.pauseIconResourceName ?: null
+        state.pauseText
       }
-    state.resumeIconResourceName =
-      if (options?.hasKey("resumeIconResourceName") ==
-        true
-      ) {
-        options.getString("resumeIconResourceName")
+    state.resumeText =
+      if (options?.hasKey("resumeText") == true) {
+        options.getString("resumeText") ?: state.resumeText
       } else {
-        state.resumeIconResourceName ?: null
+        state.resumeText
       }
     state.backgroundColor = if (options?.hasKey("color") == true) options.getInt("color") else state.backgroundColor ?: null
     state.paused = if (options?.hasKey("paused") == true) options.getBoolean("paused") else false

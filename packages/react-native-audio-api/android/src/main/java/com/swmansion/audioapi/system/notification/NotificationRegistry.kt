@@ -131,7 +131,7 @@ class NotificationRegistry(
             reactContext,
             audioAPIModule,
             RecordingNotification.ID,
-            "audio_recording4",
+            "audio_recording5",
           )
         }
 
