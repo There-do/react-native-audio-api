@@ -166,20 +166,19 @@ class RecordingNotification(
 
   private fun getBuilder(): NotificationCompat.Builder {
     val context = reactContext.get() ?: throw IllegalStateException("React context is null")
-    if (state.builder == null) {
-      val openAppIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-      val pendingIntent = PendingIntent.getActivity(context, 0, openAppIntent, PendingIntent.FLAG_IMMUTABLE)
+    val openAppIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+    val pendingIntent = PendingIntent.getActivity(context, 0, openAppIntent, PendingIntent.FLAG_IMMUTABLE)
 
-      state.builder =
-        NotificationCompat
-          .Builder(context, channelId)
-          .setOngoing(true)
-          .setContentIntent(pendingIntent)
-    }
+    val builder =
+      NotificationCompat
+        .Builder(context, channelId)
+        .setOngoing(true)
+        .setContentIntent(pendingIntent)
+
     if (state.smallIconResourceName == null) {
-      state.builder!!.setSmallIcon(android.R.drawable.ic_btn_speak_now)
+      builder.setSmallIcon(android.R.drawable.ic_btn_speak_now)
     }
-    return state.builder!!
+    return builder
   }
 
   private fun createNotificationChannel(context: ReactApplicationContext) {
@@ -262,7 +261,6 @@ class RecordingNotification(
     val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     notificationManager.cancel(notificationId)
     state.initialized = false
-    state.builder = null
   }
 
   override fun getNotificationId(): Int = notificationId
