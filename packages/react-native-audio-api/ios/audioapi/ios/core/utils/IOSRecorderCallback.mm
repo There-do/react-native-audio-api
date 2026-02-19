@@ -33,6 +33,10 @@ IOSRecorderCallback::IOSRecorderCallback(
 IOSRecorderCallback::~IOSRecorderCallback()
 {
   @autoreleasepool {
+    // Stop the worker thread before clearing resources it may access
+    isInitialized_.store(false, std::memory_order_release);
+    offloader_.reset();
+
     converter_ = nil;
     bufferFormat_ = nil;
     callbackFormat_ = nil;
@@ -105,6 +109,15 @@ Result<NoneType, std::string> IOSRecorderCallback::prepare(
 void IOSRecorderCallback::cleanup()
 {
   @autoreleasepool {
+    // 1. Prevent new audio data from being sent by the audio thread
+    isInitialized_.store(false, std::memory_order_release);
+
+    // 2. Stop the worker thread and wait for it to finish processing
+    //    This must happen BEFORE clearing member variables, as the worker
+    //    thread may still be accessing them (converter_, bufferFormat_, etc.)
+    offloader_.reset();
+
+    // 3. Now safe to flush and clear resources - worker thread is stopped
     if (circularBuffer_[0]->getNumberOfAvailableFrames() > 0) {
       emitAudioData(true);
     }
@@ -118,7 +131,6 @@ void IOSRecorderCallback::cleanup()
     for (size_t i = 0; i < channelCount_; ++i) {
       circularBuffer_[i]->zero();
     }
-    offloader_.reset();
   }
 }
 

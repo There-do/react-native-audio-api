@@ -19,6 +19,10 @@ IOSFileWriter::IOSFileWriter(
 IOSFileWriter::~IOSFileWriter()
 {
   @autoreleasepool {
+    // Stop the worker thread before clearing resources it may access
+    isFileOpen_.store(false, std::memory_order_release);
+    offloader_.reset();
+
     fileURL_ = nil;
     audioFile_ = nil;
     converter_ = nil;
@@ -108,6 +112,8 @@ OpenFileResult IOSFileWriter::openFile(
         FILE_WRITER_SPSC_OVERFLOW_STRATEGY,
         FILE_WRITER_SPSC_WAIT_STRATEGY>>(FILE_WRITER_CHANNEL_CAPACITY, offloaderLambda);
 
+    isFileOpen_.store(true, std::memory_order_release);
+
     return OpenFileResult::Ok([[fileURL_ path] UTF8String]);
   }
 }
@@ -126,6 +132,15 @@ CloseFileResult IOSFileWriter::closeFile()
       return CloseFileResult::Err("file is not open: " + filePath);
     }
 
+    // 1. Prevent new audio data from being sent by the audio thread
+    isFileOpen_.store(false, std::memory_order_release);
+
+    // 2. Stop the worker thread and wait for it to finish processing
+    //    This must happen BEFORE clearing member variables, as the worker
+    //    thread may still be accessing them (converterInputBuffer_, etc.)
+    offloader_.reset();
+
+    // 3. Now safe to clear resources - worker thread is stopped
     // AVAudioFile automatically finalizes the file when deallocated
     audioFile_ = nil;
 
@@ -143,7 +158,6 @@ CloseFileResult IOSFileWriter::closeFile()
 
     fileURL_ = nil;
     framesWritten_.store(0, std::memory_order_release);
-    offloader_.reset();
 
     return CloseFileResult::Ok(std::make_tuple(fileDuration, fileSizeBytesMb));
   }
@@ -153,11 +167,10 @@ CloseFileResult IOSFileWriter::closeFile()
 /// This method should be called from the audio thread.
 void IOSFileWriter::writeAudioData(const AudioBufferList *audioBufferList, int numFrames)
 {
-  if (audioFile_ == nil) {
-    invokeOnErrorCallback("Attempted to write audio data when file is not open");
-  } else {
-    offloader_->getSender()->send({audioBufferList, numFrames});
+  if (!isFileOpen_.load(std::memory_order_acquire)) {
+    return;
   }
+  offloader_->getSender()->send({audioBufferList, numFrames});
 }
 
 void IOSFileWriter::taskOffloaderFunction(WriterData data)

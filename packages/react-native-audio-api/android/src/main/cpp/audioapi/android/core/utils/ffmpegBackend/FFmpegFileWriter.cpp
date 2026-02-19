@@ -109,6 +109,15 @@ CloseFileResult FFmpegAudioFileWriter::closeFile() {
     return CloseFileResult::Err("File is not open");
   }
 
+  // 1. Prevent new audio data from being sent by the audio thread
+  isFileOpen_.store(false, std::memory_order_release);
+
+  // 2. Stop the worker thread and wait for it to finish processing
+  //    This must happen BEFORE we access encoder/FIFO resources below,
+  //    as the worker thread may still be using them concurrently.
+  offloader_.reset();
+
+  // 3. Now safe to flush and finalize - worker thread is stopped
   result = processFifo(true);
 
   if (result < 0) {
@@ -128,7 +137,6 @@ CloseFileResult FFmpegAudioFileWriter::closeFile() {
   if (writeEncodedPackets() < 0) {
     return CloseFileResult::Err("Failed to drain encoder packets");
   }
-  offloader_.reset();
 
   return finalizeOutput();
 }

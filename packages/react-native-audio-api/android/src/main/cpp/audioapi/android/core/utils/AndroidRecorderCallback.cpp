@@ -36,6 +36,10 @@ AndroidRecorderCallback::AndroidRecorderCallback(
           callbackId) {}
 
 AndroidRecorderCallback::~AndroidRecorderCallback() {
+  // Stop the worker thread before clearing resources it may access
+  isInitialized_.store(false, std::memory_order_release);
+  offloader_.reset();
+
   if (converter_ != nullptr) {
     ma_data_converter_uninit(converter_.get(), nullptr);
     converter_.reset();
@@ -112,6 +116,15 @@ Result<NoneType, std::string> AndroidRecorderCallback::prepare(
 }
 
 void AndroidRecorderCallback::cleanup() {
+  // 1. Prevent new audio data from being sent by the audio thread
+  isInitialized_.store(false, std::memory_order_release);
+
+  // 2. Stop the worker thread and wait for it to finish processing
+  //    This must happen BEFORE clearing member variables, as the worker
+  //    thread may still be accessing them (converter_, processingBuffer_, etc.)
+  offloader_.reset();
+
+  // 3. Now safe to flush and clear resources - worker thread is stopped
   if (circularBuffer_[0]->getNumberOfAvailableFrames() > 0) {
     emitAudioData(true);
   }
@@ -130,7 +143,6 @@ void AndroidRecorderCallback::cleanup() {
   for (size_t i = 0; i < circularBuffer_.size(); ++i) {
     circularBuffer_[i]->zero();
   }
-  offloader_.reset();
 }
 
 /// @brief Receives audio data from the recorder, processes it (resampling and deinterleaving if necessary),

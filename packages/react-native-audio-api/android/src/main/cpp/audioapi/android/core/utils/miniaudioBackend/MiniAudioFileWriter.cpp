@@ -44,7 +44,10 @@ MiniAudioFileWriter::MiniAudioFileWriter(
     : AndroidFileWriterBackend(audioEventHandlerRegistry, fileProperties) {}
 
 MiniAudioFileWriter::~MiniAudioFileWriter() {
+  // Stop the worker thread before clearing resources it may access
   isFileOpen_.store(false, std::memory_order_release);
+  offloader_.reset();
+
   fileProperties_.reset();
 
   if (encoder_ != nullptr) {
@@ -126,8 +129,15 @@ CloseFileResult MiniAudioFileWriter::closeFile() {
     return CloseFileResult ::Err("File is not open");
   }
 
+  // 1. Prevent new audio data from being sent by the audio thread
   isFileOpen_.store(false, std::memory_order_release);
 
+  // 2. Stop the worker thread and wait for it to finish processing
+  //    This must happen BEFORE clearing member variables, as the worker
+  //    thread may still be accessing them (encoder_, converter_, etc.)
+  offloader_.reset();
+
+  // 3. Now safe to clear resources - worker thread is stopped
   if (encoder_ != nullptr) {
     ma_encoder_uninit(encoder_.get());
     encoder_.reset();
@@ -168,7 +178,6 @@ CloseFileResult MiniAudioFileWriter::closeFile() {
     fclose(file);
     fileSizeInMB = static_cast<double>(fileSizeInBytes) / MB_IN_BYTES;
   }
-  offloader_.reset();
 
   filePath_ = "";
   return CloseFileResult ::Ok({fileSizeInMB, durationInSeconds});

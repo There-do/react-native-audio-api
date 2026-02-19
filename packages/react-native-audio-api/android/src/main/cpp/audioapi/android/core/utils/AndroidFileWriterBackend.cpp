@@ -18,6 +18,9 @@ AndroidFileWriterBackend::AndroidFileWriterBackend(
 }
 
 void AndroidFileWriterBackend::writeAudioData(void *data, int numFrames) {
+  if (!isFileOpen_.load(std::memory_order_acquire)) {
+    return;
+  }
   offloader_->getSender()->send({data, numFrames});
 }
 } // namespace audioapi
