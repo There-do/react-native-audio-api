@@ -19,8 +19,8 @@ RecordingNotificationManager.show({
   contentText: 'Recording...',
   paused: false,
   smallIconResourceName: 'icon_to_display',
-  pauseIconResourceName: 'pause_icon',
-  resumeIconResourceName: 'resume_icon',
+  pauseText: 'pause',
+  resumeText: 'resume',
   color: 0xff6200,
 });
 
@@ -99,8 +99,8 @@ interface RecordingNotificationInfo {
   paused?: boolean; // flag indicating whether to display pauseIcon or resumeIcon
   smallIconResourceName?: string;
   largeIconResourceName?: string;
-  pauseIconResourceName?: string;
-  resumeIconResourceName?: string;
+  pauseText?: string;
+  resumeText?: string;
   color?: number; //
 }
 ```
